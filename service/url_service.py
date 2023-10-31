@@ -26,7 +26,7 @@ def create_custom_short_url(url: str, custom_short_url: str) -> dict:
 
 def create_generated_short_url(url: str) -> dict:
     max_retries = 5
-    for _ in range(max_retries):
+    for i in range(max_retries):
         short_url = generate_short_url()
         if save_url(url, short_url):
             return {"short_url": short_url}
