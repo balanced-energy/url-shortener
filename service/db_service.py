@@ -1,5 +1,6 @@
 from pynamodb.exceptions import PutError
 from models.db_models import URLModel, URLModelPydantic
+from fastapi.exceptions import HTTPException
 
 
 def save_url(url: str, short_url: str) -> bool:
@@ -15,3 +16,20 @@ def save_url(url: str, short_url: str) -> bool:
             return False
         # Another error occurred
         raise e
+
+
+def get_all_urls():
+    """
+    Fetch all URLs from the DynamoDB table.
+    """
+    urls = []
+    try:
+        for item in URLModel.scan():
+            urls.append({
+                "short_url": item.short_url,
+                "original_url": item.url
+            })
+    except Exception as e:
+        # Handle other unforeseen exceptions
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+    return urls

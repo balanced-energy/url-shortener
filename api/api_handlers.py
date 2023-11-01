@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from models.api_models import URLRequest
 from service.url_service import create_custom_short_url, create_generated_short_url
-
+from service.db_service import get_all_urls
 app = FastAPI()
 
 
@@ -12,3 +12,10 @@ async def shorten_url(request: URLRequest):
 
     # If no custom short_url is provided, generate one
     return create_generated_short_url(request.url)
+
+
+# [TODO - handle authentication]
+@app.get("/list_urls")
+async def list_urls():
+    return get_all_urls()
+
