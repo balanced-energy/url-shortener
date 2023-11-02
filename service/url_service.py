@@ -3,8 +3,8 @@ from fastapi.exceptions import HTTPException
 from .db_service import save_url
 
 
-# Use the local server address to see redirection during testing with Postman
-BASE_URL = "http://localhost:8000/"
+# Use the local server address
+BASE_URL = "http://127.0.0.1:8000/"
 ERROR_MAX_RETRIES = 'Max retries reached. Unable to create short URL.'
 
 
