@@ -3,12 +3,11 @@ from decouple import config
 from pynamodb.models import Model
 from pynamodb.attributes import UnicodeAttribute
 from pynamodb.connection.base import Connection
-
-
-# Keys in .env file
-AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID"
-AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY"
-AWS_REGION = "AWS_REGION"
+from logger_config import logger
+from constants import (
+    DYNAMODB_TABLE_CREATION_SUCCESS_LOG,
+    DYNAMODB_TABLE_CREATION_ERROR_LOG,
+)
 
 
 class URLModelPydantic(BaseModel):
@@ -19,9 +18,9 @@ class URLModelPydantic(BaseModel):
 # Pynamo Models for Dynamo DB Tables
 
 # Configure PynamoDB to use your AWS credentials and region
-Connection.AWS_ACCESS_KEY_ID = config(AWS_ACCESS_KEY_ID)
-Connection.AWS_SECRET_ACCESS_KEY = config(AWS_SECRET_ACCESS_KEY)
-Connection.AWS_REGION = config(AWS_REGION)
+Connection.AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID')
+Connection.AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY')
+Connection.AWS_REGION = config('AWS_REGION')
 
 
 class URLModel(Model):
@@ -40,6 +39,7 @@ class URLModel(Model):
 # Table creation
 try:
     if not URLModel.exists():
-        URLModel.create_table(read_capacity_units=5, write_capacity_units=5, wait=True)
+        URLModel.create_table(read_capacity_units=1, write_capacity_units=1, wait=True)
+        logger.info(DYNAMODB_TABLE_CREATION_SUCCESS_LOG.format(table_name=URLModel.Meta.table_name))
 except Exception as e:
-    print(f"Error creating tables: {e}")
+    logger.exception(DYNAMODB_TABLE_CREATION_ERROR_LOG.format(error=e))

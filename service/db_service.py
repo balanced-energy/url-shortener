@@ -1,35 +1,55 @@
-from pynamodb.exceptions import PutError
+from pynamodb.exceptions import PutError, DoesNotExist, PynamoDBConnectionError
 from models.db_models import URLModel, URLModelPydantic
 from fastapi.exceptions import HTTPException
+from logger_config import logger
+from constants import (
+    SAVED_URL_LOG,
+    SHORT_URL_EXISTS_WARNING,
+    UNEXPECTED_ERROR_LOG,
+    DATABASE_UNREACHABLE_ERROR,
+    RETRIEVED_ORIGINAL_URL_LOG,
+    SHORT_URL_NOT_EXIST_ERROR,
+    RETRIEVED_ALL_URLS_LOG,
+    ERROR_RETRIEVING_ALL_URLS_LOG,
+
+)
 
 
 def save_url(url: str, short_url: str) -> bool:
     try:
-        # Http object can't be serialized, need to save it as a string
-        url_str = str(url)
-        validated_data = URLModelPydantic(url=url_str, short_url=short_url)
+        validated_data = URLModelPydantic(url=str(url), short_url=short_url)
         URLModel(short_url=validated_data.short_url, url=validated_data.url).save(URLModel.short_url.does_not_exist())
+        logger.info(SAVED_URL_LOG.format(url=url, short_url=short_url))
         return True
     except PutError as e:
-        # short_url already exists in URLs table
         if "ConditionalCheckFailedException" in str(e):
+            logger.warning(SHORT_URL_EXISTS_WARNING.format(short_url=short_url))
             return False
-        # Another error occurred
-        raise e
+        logger.error(UNEXPECTED_ERROR_LOG.format(error=e))
+        raise
+    except PynamoDBConnectionError:
+        logger.error(DATABASE_UNREACHABLE_ERROR)
+        raise HTTPException(status_code=503, detail=DATABASE_UNREACHABLE_ERROR)
+    except Exception as e:
+        logger.exception(UNEXPECTED_ERROR_LOG.format(error=e))
+        raise HTTPException(status_code=500, detail=UNEXPECTED_ERROR_LOG.format(error=e))
+
+
+def get_original_url(short_url: str):
+    try:
+        url_item = URLModel.get(hash_key=short_url)
+        logger.info(RETRIEVED_ORIGINAL_URL_LOG.format(short_url=short_url))
+        return url_item.url
+    except DoesNotExist:
+        logger.warning(SHORT_URL_NOT_EXIST_ERROR.format(short_url=short_url))
+        raise HTTPException(status_code=404, detail=SHORT_URL_NOT_EXIST_ERROR.format(short_url=short_url))
 
 
 def get_all_urls():
-    """
-    Fetch all URLs from the DynamoDB table.
-    """
-    urls = []
     try:
-        for item in URLModel.scan():
-            urls.append({
-                "short_url": item.short_url,
-                "original_url": item.url
-            })
+        urls = [item for item in URLModel.scan()]
+        logger.info(RETRIEVED_ALL_URLS_LOG)
+        return [{"short_url": item.short_url, "original_url": item.url} for item in urls]
     except Exception as e:
-        # Handle other unforeseen exceptions
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
-    return urls
+        logger.exception(ERROR_RETRIEVING_ALL_URLS_LOG.format(error=e))
+        raise HTTPException(status_code=500, detail=ERROR_RETRIEVING_ALL_URLS_LOG.format(error=e))

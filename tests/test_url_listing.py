@@ -27,7 +27,7 @@ class TestURLListing(unittest.TestCase):
         with self.assertRaises(HTTPException) as context:
             get_all_urls()
         self.assertEqual(context.exception.status_code, 500)
-        self.assertEqual(context.exception.detail, "An error occurred: DB connection error")
+        self.assertEqual(context.exception.detail, "Error retrieving all URLs: DB connection error")
 
 
 # If this script is run directly, it will execute the tests.
