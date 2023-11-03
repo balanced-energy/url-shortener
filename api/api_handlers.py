@@ -1,11 +1,12 @@
 from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 from pynamodb.exceptions import DoesNotExist
 from models.db_models import URLModel
 from models.api_models import URLRequest
 from service.url_service import create_custom_short_url, create_generated_short_url
 from service.db_service import get_all_urls
+
+
 app = FastAPI()
 
 
@@ -24,8 +25,7 @@ async def list_urls():
     return get_all_urls()
 
 
-# Define the redirect endpoint
-@app.get("/redirect/{short_url}", response_model=None)
+@app.get("/redirect/{short_url}")
 async def redirect(short_url: str):
     try:
         # Attempt to retrieve the item from the database
