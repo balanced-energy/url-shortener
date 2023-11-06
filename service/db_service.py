@@ -36,9 +36,11 @@ def save_url(url: str, short_url: str) -> bool:
 
 
 def get_original_url(short_url: str):
+    print(f'get_original_url: {short_url}')
     try:
         url_item = URLModel.get(hash_key=short_url)
         logger.info(RETRIEVED_ORIGINAL_URL_LOG.format(short_url=short_url))
+        print(f'recieved short_url:{short_url}')
         return url_item.url
     except DoesNotExist:
         logger.warning(SHORT_URL_NOT_EXIST_ERROR.format(short_url=short_url))

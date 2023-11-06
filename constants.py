@@ -9,6 +9,8 @@ ERROR_SHORTEN_URL_LOG = "Error in shorten_url: {error}"
 RECEIVED_REQUEST_LIST_URLS_LOG = "Received request to list all URLs."
 RETRIEVED_URLS_LOG = "Retrieved {count} URLs."
 ERROR_LIST_URLS_LOG = "Error in list_urls: {error}"
+REDIRECT_SUCCESS_LOG = "Redirect successful: {short_url} -> {original_url}"
+REDIRECT_NOT_FOUND_LOG = "Redirect failed: No URL for '{short_url}' found"
 
 # api_service.py
 SHORT_URL_EXISTS_WARNING = "Short URL '{short_url}' already exists."

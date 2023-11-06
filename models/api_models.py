@@ -11,7 +11,7 @@ class URLRequest(BaseModel):
     @field_validator('url')
     def validate_url_length(cls, value):
         max_length = 2048
-        if len(value.__str__()) > max_length:  # Convert the Url type to a string before checking its length
+        if len(value.__str__()) > max_length:
             raise ValueError(f'URL must be {max_length} characters or less')
         return value
 

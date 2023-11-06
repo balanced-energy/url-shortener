@@ -10,8 +10,6 @@ from constants import (
     ERROR_MAX_RETRIES
 )
 
-# Use the local server address
-
 
 def generate_short_url() -> str:
     # Generate a UUID and remove hyphens, take first 10 characters and combine with Base Url
@@ -35,3 +33,4 @@ def create_generated_short_url(url: str) -> dict:
             return {"short_url": short_url}
     logger.error(ERROR_MAX_RETRIES)
     raise HTTPException(status_code=400, detail=ERROR_MAX_RETRIES)
+
