@@ -1,6 +1,5 @@
-from fastapi import FastAPI, HTTPException, Path
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import RedirectResponse
-from pynamodb.exceptions import DoesNotExist
 from models.api_models import URLRequest
 from service.api_service import create_custom_short_url, create_generated_short_url
 from service.db_service import get_all_urls, get_original_url
@@ -14,7 +13,7 @@ from constants import (
     ERROR_LIST_URLS_LOG,
     REDIRECT_SUCCESS_LOG,
     REDIRECT_NOT_FOUND_LOG,
-    UNEXPECTED_ERROR_LOG,
+    UNEXPECTED_ERROR,
 )
 
 app = FastAPI()
@@ -31,9 +30,12 @@ async def shorten_url(request: URLRequest):
         result = create_generated_short_url(request.url)
         logger.info(GENERATED_SHORT_URL_LOG.format(short_url=result['short_url']))
         return result
-    except Exception as e:
-        logger.error(ERROR_SHORTEN_URL_LOG.format(error=e))
+    except HTTPException:
         raise
+    except Exception as e:
+        # Log the unexpected error and raise a generic HTTP exception
+        logger.error(ERROR_SHORTEN_URL_LOG.format(error=e))
+        raise HTTPException(status_code=500, detail=UNEXPECTED_ERROR)
 
 
 # [TODO - handle authentication]
@@ -51,24 +53,17 @@ async def list_urls():
 
 @app.get("/redirect/{short_url}")
 async def redirect(short_url: str):
-    print(f'redirect endpoint')
-    try:
-        # Attempt to retrieve the item from the database
-        original_url = get_original_url(short_url)
-        logger.info(REDIRECT_SUCCESS_LOG.format(short_url=short_url, original_url=original_url))
-        response = RedirectResponse(url=original_url)
-        response.headers["X-Original-URL"] = original_url
-        return response
-    except DoesNotExist:
-        logger.warning(REDIRECT_NOT_FOUND_LOG.format(short_url=short_url))
+    original_url = get_original_url(short_url)
+    if original_url is None:
+        # Log as info, because this is an expected situation that doesn't require intervention
+        logger.info(REDIRECT_NOT_FOUND_LOG.format(short_url=short_url))
         raise HTTPException(
             status_code=404,
-            detail=f'No URL for "{short_url}" found'
+            detail=f"No URL for '{short_url}' found"
         )
-    except Exception as e:
-        logger.exception(UNEXPECTED_ERROR_LOG.format(error=e))
-        raise HTTPException(
-            status_code=500,
-            detail="An unexpected error occurred"
-        )
+    # Log the redirect success as info
+    logger.info(REDIRECT_SUCCESS_LOG.format(short_url=short_url, original_url=original_url))
+    response = RedirectResponse(url=original_url)
+    response.headers["X-Original-URL"] = original_url
+    return response
 

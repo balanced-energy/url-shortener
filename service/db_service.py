@@ -5,13 +5,12 @@ from logger_config import logger
 from constants import (
     SAVED_URL_LOG,
     SHORT_URL_EXISTS_WARNING,
-    UNEXPECTED_ERROR_LOG,
+    UNEXPECTED_ERROR,
     DATABASE_UNREACHABLE_ERROR,
     RETRIEVED_ORIGINAL_URL_LOG,
-    SHORT_URL_NOT_EXIST_ERROR,
+    SHORT_URL_NOT_EXIST_LOG,
     RETRIEVED_ALL_URLS_LOG,
     ERROR_RETRIEVING_ALL_URLS_LOG,
-
 )
 
 
@@ -24,27 +23,31 @@ def save_url(url: str, short_url: str) -> bool:
     except PutError as e:
         if "ConditionalCheckFailedException" in str(e):
             logger.warning(SHORT_URL_EXISTS_WARNING.format(short_url=short_url))
-            return False
-        logger.error(UNEXPECTED_ERROR_LOG.format(error=e))
-        raise
+            raise HTTPException(status_code=409, detail=SHORT_URL_EXISTS_WARNING.format(short_url=short_url))
+        # Raise any other PutError that isn't the result of a conflicting short_url
+        else:
+            logger.error(UNEXPECTED_ERROR.format(error=e))
+            raise
     except PynamoDBConnectionError:
         logger.error(DATABASE_UNREACHABLE_ERROR)
         raise HTTPException(status_code=503, detail=DATABASE_UNREACHABLE_ERROR)
     except Exception as e:
-        logger.exception(UNEXPECTED_ERROR_LOG.format(error=e))
-        raise HTTPException(status_code=500, detail=UNEXPECTED_ERROR_LOG.format(error=e))
+        logger.exception(UNEXPECTED_ERROR.format(error=e))
+        raise HTTPException(status_code=500, detail=UNEXPECTED_ERROR.format(error=e))
 
 
 def get_original_url(short_url: str):
-    print(f'get_original_url: {short_url}')
     try:
         url_item = URLModel.get(hash_key=short_url)
         logger.info(RETRIEVED_ORIGINAL_URL_LOG.format(short_url=short_url))
-        print(f'recieved short_url:{short_url}')
         return url_item.url
     except DoesNotExist:
-        logger.warning(SHORT_URL_NOT_EXIST_ERROR.format(short_url=short_url))
-        raise HTTPException(status_code=404, detail=SHORT_URL_NOT_EXIST_ERROR.format(short_url=short_url))
+        logger.info(SHORT_URL_NOT_EXIST_LOG.format(short_url=short_url))
+        # Return None to indicate short_url not found
+        return None
+    except Exception as e:
+        logger.exception(UNEXPECTED_ERROR.format(error=e))
+        raise HTTPException(status_code=500, detail=UNEXPECTED_ERROR.format(error=e))
 
 
 def get_all_urls():
