@@ -1,4 +1,4 @@
-from pydantic import BaseModel, HttpUrl, constr, field_validator
+from pydantic import BaseModel, HttpUrl, constr, field_validator, Field
 from typing import Optional
 
 
@@ -15,3 +15,16 @@ class URLRequest(BaseModel):
             raise ValueError(f'URL must be {max_length} characters or less')
         return value
 
+
+class User(BaseModel):
+    username: str
+    disabled: bool = Field(bool=True)
+
+
+class UserInDB(User):
+    hashed_password: str
+
+
+class CreateUserRequest(BaseModel):
+    username: str
+    password: str

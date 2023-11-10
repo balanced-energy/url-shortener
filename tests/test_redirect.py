@@ -1,7 +1,7 @@
 from unittest.mock import patch, Mock
 from fastapi.testclient import TestClient
 import unittest
-from api.api_handlers import app  # make sure to import your FastAPI app correctly
+from api.api_endpoints import app  # make sure to import your FastAPI app correctly
 from pynamodb.exceptions import DoesNotExist
 
 client = TestClient(app)
