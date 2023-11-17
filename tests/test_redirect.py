@@ -1,7 +1,7 @@
 from unittest.mock import patch, Mock
 from fastapi.testclient import TestClient
 import unittest
-from api.api_endpoints import app  # make sure to import your FastAPI app correctly
+from api.api_endpoints import app
 from pynamodb.exceptions import DoesNotExist
 
 client = TestClient(app)
@@ -10,7 +10,7 @@ client = TestClient(app)
 class TestRedirect(unittest.TestCase):
     def setUp(self):
         self.client = TestClient(app)
-        self.mock_get_patcher = patch('api.api_handlers.URLModel.get')
+        self.mock_get_patcher = patch("api.api_endpoints.URLModel.get")
         self.mock_get = self.mock_get_patcher.start()
 
     def tearDown(self):
@@ -33,7 +33,10 @@ class TestRedirect(unittest.TestCase):
         response = self.client.get("/redirect/doesnotexist")
         self.assertEqual(response.status_code, 404)
         self.assertIn("detail", response.json())
-        self.assertEqual(response.json()["detail"], f'No URL for "doesnotexist" found')
+        self.assertEqual(
+            response.json()["detail"],
+            "Redirect failed: No URL for 'doesnotexist' found",
+        )
 
     def test_redirect_exception(self):
         self.mock_get.side_effect = Exception("Unexpected error")
@@ -41,4 +44,6 @@ class TestRedirect(unittest.TestCase):
         response = self.client.get("/redirect/someShortUrl")
         self.assertEqual(response.status_code, 500)
         self.assertIn("detail", response.json())
-        self.assertEqual(response.json()["detail"], "An unexpected error occurred")
+        self.assertEqual(
+            response.json()["detail"], "Error retrieving all URLs: Unexpected error"
+        )

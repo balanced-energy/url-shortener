@@ -8,23 +8,25 @@ class URLRequest(BaseModel):
     # Specify the maximum length allowed for custom short URLs
     short_url: Optional[constr(max_length=50)] = None
 
-    @field_validator('url')
+    @field_validator("url")
     def validate_url_length(cls, value):
         max_length = 2048
         if len(value.__str__()) > max_length:
-            raise ValueError(f'URL must be {max_length} characters or less')
+            raise ValueError(f"URL must be {max_length} characters or less")
         return value
-
-
-class User(BaseModel):
-    username: str
-    disabled: bool = Field(bool=True)
-
-
-class UserInDB(User):
-    hashed_password: str
 
 
 class CreateUserRequest(BaseModel):
     username: str
     password: str
+    admin: bool = Field(bool=False)
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+
+class UpdateUrlLimitRequest(BaseModel):
+    user_id: str
+    new_limit: int
