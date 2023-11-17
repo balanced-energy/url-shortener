@@ -19,13 +19,6 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def save_url(url: str, short_url: str, user_id: str) -> bool:
     try:
-        if url_limit_check(user_id):
-            logger.warning(URL_LIMIT_REACHED_LOG.format(username=user_id))
-            # Url limit reached
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=URL_LIMIT_REACHED_LOG.format(username=user_id),
-            )
         # Directly use the provided data to create a new URLModel instance,
         # Object of type Url is not JSON serializable so cast url as string
         new_url = URLModel(short_url=short_url, url=str(url), user_id=user_id)

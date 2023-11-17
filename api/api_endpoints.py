@@ -84,8 +84,15 @@ async def shorten_url(
     request: URLRequest, current_user: UserInDB = Depends(get_current_user)
 ):
     try:
+        if url_limit_check(current_user.user_id):
+            logger.warning(URL_LIMIT_REACHED_LOG.format(username=current_user.user_id))
+            # Url limit reached
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=URL_LIMIT_REACHED_LOG.format(username=current_user.user_id),
+            )
         # If short_url is given use it, otherwise generate a unique url and save it
-        if request.short_url:
+        elif request.short_url:
             result = create_custom_short_url(
                 request.url, request.short_url, current_user.user_id
             )
