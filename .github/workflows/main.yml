@@ -4,7 +4,9 @@ on:
   push:
     branches:
       # Trigger on pushes to the main branch
-      - main  
+      - main
+  # Allow manual trigger of workflow
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
@@ -35,7 +37,8 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
         source: "./docker-compose.yml"
-        target: "~/"  # Copy to the home directory
+        # Copy to the home directory
+        target: "~/"  
 
     - name: Update and clean up on EC2
       uses: appleboy/ssh-action@v1.0.0
@@ -44,7 +47,16 @@ jobs:
         username: ${{ secrets.EC2_USERNAME }}
         key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
         script: |
-          cd ~/  # Change to the home directory
+          # Install Docker Compose if not present 
+          if ! command -v docker-compose &> /dev/null
+          then
+            echo "Installing Docker Compose..."
+            sudo curl -L "https://github.com/docker/compose/releases/download/v2.5.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+            sudo chmod +x /usr/local/bin/docker-compose
+          fi
+          
+          # Change to the home directory
+          cd ~/  
           
           # Stop and remove containers managed by Docker Compose
           docker-compose down
