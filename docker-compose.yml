@@ -1,0 +1,9 @@
+version: '3'
+services:
+  fastapi-app:
+    image: camdenc/url-shortener:latest
+    env_file:
+      - .env
+    container_name: url-shortener-container
+    ports:
+      - "8000:8000"
