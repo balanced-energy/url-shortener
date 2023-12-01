@@ -1,0 +1,61 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      # Trigger on pushes to the main branch
+      - main  
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        push: true
+        tags: camdenc/url-shortener:latest
+
+    - name: Copy Docker Compose file to EC2
+      uses: appleboy/scp-action@v0.1.4
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+        source: "./docker-compose.yml"
+        target: "~/"  # Copy to the home directory
+
+    - name: Update and clean up on EC2
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.EC2_HOST }}
+        username: ${{ secrets.EC2_USERNAME }}
+        key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+        script: |
+          cd ~/  # Change to the home directory
+          
+          # Stop and remove containers managed by Docker Compose
+          docker-compose down
+          
+          # Remove any stopped containers
+          docker container prune -f
+
+          # Remove unused Docker images
+          docker image prune -a -f
+
+          # Start up the new containers
+          docker-compose up -d
+
+
