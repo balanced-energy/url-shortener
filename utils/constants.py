@@ -64,3 +64,25 @@ JWT_TOKEN_EXPIRE_MINUTES = 30
 # URL info limit keys for get_user_url_info output
 URL_LIMIT_KEY = "url_limit"
 URL_COUNT_KEY = "current_url_count"
+
+# CLI-specific constants
+# In constants.py
+SERVER_URL_PORT = "http://127.0.0.1:8000"
+SERVER = "127.0.0.1"
+PORT = 8000
+UVICORN_START_PATH = "api.api_endpoints:app"
+
+# Info
+CLI_INVALID_LOGIN = "Invalid username or password. Please try again."
+CLI_LOGIN_RESPONSE = "Response status code from login: {response_code}"
+CLI_LOGIN_SUCCESS = "Login successful."
+CLI_LOGIN_FAILED = "Login failed."
+CLI_ERROR = "An error occurred: {error}"
+CLI_SHORT_URL_RESULT = "Short URL: {short_url}"
+CLI_NOT_LOGGED_IN = "No authentication token found. Please log in first."
+CLI_ADMIN_ACCESS = "This command is only available to admin users."
+ADMIN_STATUS_CHECK_ERROR = "Error occurred while verifying admin status: {error}"
+ADMIN_STATUS_CHECK_LOG = "Checking admin status for the current user."
+CLI_TOKEN_SAVED = "Token saved successfully"
+CLI_NO_URLS = "No URLs found."
+CLI_NO_ORIGINAL_URL = "Original URL not found for the given short URL."
