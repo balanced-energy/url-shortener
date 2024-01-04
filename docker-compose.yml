@@ -6,4 +6,4 @@ services:
       - .env
     container_name: url-shortener-container
     ports:
-      - "8000:8000"
+      - "80:8000"
