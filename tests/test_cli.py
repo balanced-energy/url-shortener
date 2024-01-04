@@ -65,7 +65,7 @@ class TestCLICommands(unittest.TestCase):
     @patch("utils.cli.is_admin", return_value=False)
     @patch("utils.cli.load_token", return_value="test_token")
     def test_list_urls_as_non_admin(self, mock_load_token, mock_is_admin):
-        result = self.runner.invoke(app, ["list-urls"])
+        result = self.runner.invoke(app, ["list with -urls"])
         self.assertIn(CLI_ADMIN_ACCESS, result.output)
 
     @patch("httpx.get")

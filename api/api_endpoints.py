@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, responses
 from fastapi.responses import RedirectResponse
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from typing import Annotated
@@ -23,6 +23,11 @@ from utils.constants import *
 app = FastAPI()
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+
+@app.get("/")
+def read_root():
+    return responses.RedirectResponse("/docs")
 
 
 @app.get("/users/me", response_model=User)
